@@ -12,7 +12,7 @@ const jwt = require('jsonwebtoken')
 const config = require('config')
 
 
-// @req GET http://localhost:3000/users
+// @req GET http://localhost:3000/customers
 // @access PRIVATE and PUBLIC
 // @desc get users
 router.get('/', (req, res) => {

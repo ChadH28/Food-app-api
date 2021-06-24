@@ -12,10 +12,10 @@ const bodyParser = require('body-parser');
 // routes
 const food = require('./routes/food')
 const customers = require('./routes/customers')
-const auth = require('./routes/auth')
+// const auth = require('./routes/auth')
 
 
-// Init middleware
+// // Init middleware
 // app.use(bodyParser.json());
 
 
@@ -27,15 +27,16 @@ app.use(bodyParser.urlencoded({
     limit: '10mb',
     extended: true
 }))
+
 app.use(express.json({
     extended: false
 }))
 
 // Routes
-app.use('/users', customers)
-app.use('/auth', auth)
+app.use('/api/customers', customers)
+// app.use('/auth', auth)
 // CRUD
-app.use('/blogs', food)
+app.use('/api/food', food)
 // app.use('/management', management)
 
 

@@ -5,23 +5,25 @@
 exports.up = function (knex) {
   return knex.schema
       .createTable('customers', function (table) {
-          table.increments('customer_id');
-          table.string('username').notNullable();
-          table.string('email').notNullable().unique();
-          table.string('password').notNullable();
-          table.string('image', [9999999]);
-          table.string('role').notNullable().defaultTo('reader') // Reader | blogger | admin
+          table.increments('customer_id').unique();
+          table.string('customer_name').notNullable();
+          table.string('customer_email').notNullable().unique();
+          table.string('customer_password').notNullable();
+          table.string('customer_address');
+          table.string('customer_number');
+          table.string('customer_payMethod').notNullable(); // options: card | cash
+          table.string('customer_deliverMethod').notNullable(); // options: deliver | fetch
           table.timestamp('date_started').defaultTo(knex.fn.now())
-          table.timestamp('date_ended').defaultTo(knex.fn.now())
       })
 
+
       .createTable('food', function (table) {
-          table.increments('food_id');
+          table.increments('food_id').unique();
           table.string('food_title').notNullable();
           table.string('food_description', [500]).notNullable();
           table.string('food_ingredients', [500]);
           table.integer('food_price').notNullable();
-          table.string('date_placement').notNullable();
+          table.string('date_placement').notNullable(); //options : monday - friday
           table.string('food_image', [9999999]);
           table.timestamp('food_created').defaultTo(knex.fn.now());
           table.timestamp('food_edited').defaultTo(knex.fn.now());

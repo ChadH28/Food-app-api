@@ -1,11 +1,11 @@
 const {
-  Router
+    Router
 } = require('express');
 const knex = require('../db/knex')
 const router = Router();
 const {
-  check,
-  validationResult
+    check,
+    validationResult
 } = require('express-validator')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
@@ -16,12 +16,13 @@ const config = require('config')
 // @access PRIVATE and PUBLIC
 // @desc get users
 router.get('/', (req, res) => {
-  knex
-    .select()
-    .from('customers')
-    .then(function (customers) {
-      res.send(customers)
-    })
+    knex
+        .select()
+        .from('customers')
+        .then(function (customers) {
+            res.send(customers)
+            delete customers.customer_password;
+        })
 })
 
 
@@ -30,102 +31,105 @@ router.get('/', (req, res) => {
 // @access PRIVATE
 // @desc get a user
 router.get('/:id', (req, res) => {
-  const {
-    id
-  } = req.params;
-  knex
-    .select()
-    .from('customers')
-    .where('customer_id', id)
-    .then(function (customer) {
-      res.send(customer)
-    })
+    const {
+        id
+    } = req.params;
+    knex
+        .select()
+        .from('customers')
+        .where('customer_id', id)
+        .then(function (customer) {
+            res.send(customer)
+            delete customer.customer_password;
+        })
 })
 
 
-// @req POST http://localhost:3000/users
+// @req POST http://localhost:3000/customers
 // @access public
 // @desc add new user
 router.post('/',
-  [
-      check('username', 'username is required')
-      .not()
-      .isEmpty(),
-      check('email', 'email is required')
-      .isEmail()
-      .normalizeEmail(),
-      check('password', 'password has to more than 5 characters')
-      .isLength({
-          min: 5
-      })
-  ], async (req, res) => {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-          return res.status(400).json({
-              errors: errors.array()
-          })
-      } // change made
+    [
+        check('customer_name', 'username is required')
+            .not()
+            .isEmpty(),
+        check('customer_email', 'email is required')
+            .isEmail()
+            .normalizeEmail(),
+        check('customer_password', 'password has to more than 5 characters')
+            .isLength({
+                min: 5
+            })
+    ], async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                errors: errors.array()
+            })
+        } // change made
 
-      const {
-          username,
-          email,
-          password,
-          image
-      } = req.body
+        const {
+            customer_name,
+            customer_email,
+            customer_password,
+            customer_payMethod,
+            customer_deliverMethod
+        } = req.body
 
-      try {
-          let exists = await knex
-              .select()
-              .from('customers')
-              .where({
-                  'customer_email': email // first string val in table then object 
-              })
-              .then((users) => {
-                  return users[0]
-              })
+        try {
+            let exists = await knex
+                .select()
+                .from('customers')
+                .where({
+                    'customer_email': customer_email // first string val in table then object 
+                })
+                .then((customers) => {
+                    return customers[0]
+                })
 
-          if (exists) {
-              res.status(400);
-              return res.send('customer already exists')
-          } else {
-              customer = {
-                  username,
-                  email,
-                  password,
-                  image
-              }
-              const salt = await bcrypt.genSalt(10)
-              user.password = await bcrypt.hash(password, salt)
-              knex('customers')
-                  .insert(customer)
-                  //console.log(user)
-                  .then(function () {
-                      const payload = {
-                          customer: {
-                              id: customer.id,
-                              email: customer.email
-                          }
-                      }
+            if (exists) {
+                res.status(400);
+                return res.send('customer already exists')
+            } else {
+                customer = {
+                    customer_name,
+                    customer_email,
+                    customer_password,
+                    customer_payMethod,
+                    customer_deliverMethod
+                }
+                const salt = await bcrypt.genSalt(10)
+                customer.customer_password = await bcrypt.hash(customer_password, salt)
+                knex('customers')
+                    .insert(customer)
+                    //console.log(user)
+                    .then(function () {
+                        const payload = {
+                            customer: {
+                                id: customer.id,
+                                customer_email: customer.customer_email
+                            }
+                        }
 
-                      jwt.sign(
-                          payload,
-                          config.get('jwtSecret'), {
-                              expiresIn: 360000
-                          },
-                          (error, token) => {
-                              if (error) throw error;
-                              res.json({
-                                  token
-                              })
-                          }
-                      )
-                  })
-          }
-      } catch (error) {
-          console.error(error.message)
-          res.status(500).send('Server error')
-      }
-  })
+                        jwt.sign(
+                            payload,
+                            config.get('jwtSecret'), {
+                            expiresIn: 360000
+                        },
+                            (error, token) => {
+                                if (error) throw error;
+                                res.json({
+                                    token
+                                })
+                            }
+                        )
+                    })
+            }
+        } catch (error) {
+            console.error(error.message)
+            res.status(500).send('Server error')
+        }
+    })
 
 // // @req PUT http://localhost:3000/users/:id
 // // @access PRIVATE
